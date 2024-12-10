@@ -11,11 +11,12 @@ unused_roles = []
 
 
 def list_unused_roles(event, context):
-    
-    response = iam_client.list_roles()
-    print(response)
-    for role in response['Roles']:
-        role_name = role['RoleName']
-        print(role_name)
- 
+    try:
+        for page in iam_client.get_paginator('list_roles').paginate():
+            for role in page['Roles']:
+                role_name = role['RoleName']
+                print(role_name)
+    except Exception as e:
+        print(f"Erro ao listar roles: {e}")
+               
 if __name__ == '__main__': list_unused_roles({},{})
