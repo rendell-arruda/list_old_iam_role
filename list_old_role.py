@@ -15,7 +15,11 @@ def list_unused_roles(event, context):
         for page in iam_client.get_paginator('list_roles').paginate():
             for role in page['Roles']:
                 role_name = role['RoleName']
-                print(role_name)
+                print(f'Verificando role :{role_name}')
+                last_used_date = iam_client.get_role(RoleName=role_name)['Role'].get('RoleLastUsed',{}).get('LastUsedDate')
+                
+                # if not last_used_date
+                
     except Exception as e:
         print(f"Erro ao listar roles: {e}")
                
