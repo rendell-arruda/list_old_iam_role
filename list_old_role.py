@@ -1,5 +1,6 @@
 import boto3
 from datetime import datetime, timezone, timedelta
+import csv
 
 #VARIABLES
 #account name 
@@ -36,13 +37,18 @@ def lambda_handler(event, context):
                     #chech if the role is older than 90 days considering 86400 seconds in a day
                     if time_difference.total_seconds() > days_old * 86400:
                         print(f'Role {role_name} não utilizada desde: {last_used_date}\n')
-                        unused_roles.append({'RoleName': role_name, 'LastUsedDate': 'Nunca usada'})    
+                        unused_roles.append({'RoleName': role_name, 'LastUsedDate': last_used_date})    
                 
+        #export results to a csv file
+        with open('unused_roles.csv', 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=['RoleName', 'LastUsedDate'])
+            writer.writeheader()
+            writer.writerows(unused_roles)
+        
+        print(f"\n{len(unused_roles)} roles não utilizadas encontradas. Detalhes salvos em 'unused_roles.csv'.")
                 
     except Exception as e:
         print(f"Erro ao listar roles: {e}")
-    
-    print(f"{len(unused_roles)} roles não utilizadas encontradas")                     
- 
+     
 if __name__ == '__main__': 
     lambda_handler({},{})
