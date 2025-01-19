@@ -5,7 +5,7 @@ from datetime import datetime, timezone, timedelta
 #account name 
 account_name = 'sandbox' 
 #qtdd de dias para considerar uma role como inativa.
-days_old = 90
+days_old = 60
 #list de roles consideradas inativas
 unused_roles = []
 
@@ -26,9 +26,23 @@ def lambda_handler(event, context):
                 role_info = iam_client.get_role(RoleName=role_name)
                 last_used_date = role_info['Role'].get('RoleLastUsed',{}).get('LastUsedDate')
 
+                #verify if role was used
+                if not last_used_date:
+                    print(f'Role {role_name} nunca foi usada.\n')
+                    unused_roles.append({'RoleName': role_name, 'LastUsedDate': 'Nunca usada'})
+                else:
+                    #verify if role is out of the allowed period
+                    time_difference = datetime.now(timezone.utc) - last_used_date
+                    #chech if the role is older than 90 days considering 86400 seconds in a day
+                    if time_difference.total_seconds() > days_old * 86400:
+                        print(f'Role {role_name} não utilizada desde: {last_used_date}\n')
+                        unused_roles.append({'RoleName': role_name, 'LastUsedDate': 'Nunca usada'})    
+                
                 
     except Exception as e:
         print(f"Erro ao listar roles: {e}")
+    
+    print(f"{len(unused_roles)} roles não utilizadas encontradas")                     
  
 if __name__ == '__main__': 
     lambda_handler({},{})
