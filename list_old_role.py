@@ -16,7 +16,17 @@ def lambda_handler(event, context):
     try:
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_old)
         
-        
+        # list roles
+        for page in iam_client.get_paginator('list_roles').paginate():
+            for role in page['Roles']:
+                role_name = role['RoleName']
+                print(f"Verificando role: {role_name}")
+                
+                # get last used date
+                role_info = iam_client.get_role(RoleName=role_name)
+                last_used_date = role_info['Role'].get('RoleLastUsed',{}).get('LastUsedDate')
+
+                
     except Exception as e:
         print(f"Erro ao listar roles: {e}")
  
